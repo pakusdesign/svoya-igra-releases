@@ -1,0 +1,111 @@
+{
+  "name": "svoya-igra",
+  "version": "0.1.7",
+  "private": true,
+  "main": "electron/main.cjs",
+  "engines": {
+    "node": ">=20.9.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "desktop:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "build": "next build",
+    "start": "next start",
+    "desktop:pack": "npm run build && electron-builder --dir",
+    "desktop:dist": "npm run build && electron-builder",
+    "desktop:mac": "npm run build && electron-builder --mac",
+    "desktop:win": "npm run build && electron-builder --win",
+    "desktop:win:x64": "npm run build && electron-builder --win --x64",
+    "release:prepare": "npm run build && electron-builder --win --x64 --publish never && electron-builder --mac --publish never",
+    "release:publish": "node scripts/publish-github-release.mjs",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.74.1",
+    "electron-updater": "^6.8.9",
+    "lucide-react": "^0.468.0",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
+  },
+  "build": {
+    "appId": "ru.svoyaigra.desktop",
+    "productName": "Svoya Igra",
+    "executableName": "SvoyaIgra",
+    "asar": false,
+    "icon": "build/icon.png",
+    "files": [
+      "app/**/*",
+      "build/icon.png",
+      "components/**/*",
+      "electron/**/*",
+      "lib/**/*",
+      ".next/**/*",
+      "next.config.mjs",
+      "package.json",
+      "postcss.config.mjs",
+      "public/**/*",
+      "tailwind.config.ts",
+      "tsconfig.json",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "pakusdesign",
+        "repo": "svoya-igra-releases",
+        "releaseType": "release"
+      }
+    ],
+    "mac": {
+      "icon": "build/icon.icns",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.education",
+      "artifactName": "Mac/${productName}-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "shortcutName": "Своя игра",
+      "uninstallDisplayName": "Svoya Igra",
+      "artifactName": "Windows/SvoyaIgra-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Windows/SvoyaIgra-Portable-${version}-${arch}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.18",
+    "concurrently": "^9.2.1",
+    "electron": "^42.0.1",
+    "electron-builder": "^26.8.1",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.4.2",
+    "wait-on": "^9.0.10"
+  }
+}

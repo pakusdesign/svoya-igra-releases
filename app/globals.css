@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #061233;
+  color: #f5f7fb;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html:has(.admin-shell),
+body:has(.admin-shell) {
+  background: #1f1f1f;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #061233;
+  color: #f5f7fb;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--colorNeutralStroke1, rgba(255, 255, 255, 0.18));
+  padding: 0.45rem 0.75rem;
+  font-weight: 600;
+  transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.btn:not(:disabled):hover {
+  background: var(--colorNeutralBackground1Hover, rgba(255, 255, 255, 0.12));
+}
+
+.btn-primary {
+  background: var(--colorBrandBackground, #ffd84d);
+  color: var(--colorNeutralForegroundOnBrand, #081333);
+  border-color: var(--colorBrandBackground, #ffd84d);
+}
+
+.btn-secondary {
+  background: var(--colorNeutralBackground1, rgba(255, 255, 255, 0.08));
+  color: var(--colorNeutralForeground1, #f5f7fb);
+}
+
+.field {
+  width: 100%;
+  min-height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--colorNeutralStroke1, rgba(255, 255, 255, 0.16));
+  background: var(--colorNeutralBackground1, rgba(0, 0, 0, 0.2));
+  color: var(--colorNeutralForeground1, #f5f7fb);
+  padding: 0.35rem 0.65rem;
+}
+
+.panel {
+  border: 1px solid var(--colorNeutralStroke2, rgba(255, 255, 255, 0.14));
+  background: var(--colorNeutralBackground2, rgba(255, 255, 255, 0.06));
+  border-radius: 6px;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background: var(--colorNeutralBackground1, #1f1f1f);
+  color: var(--colorNeutralForeground1, #f5f5f5);
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fontSizeBase300, 14px);
+  font-weight: var(--fontWeightRegular, 400);
+}
+
+.admin-shell .admin-display {
+  color: var(--colorNeutralForeground1, #f5f5f5);
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: 36px;
+  font-weight: var(--fontWeightSemibold, 600);
+  letter-spacing: 0;
+  line-height: 44px;
+}
+
+.admin-shell .admin-context-title {
+  color: var(--colorNeutralForeground1, #f5f5f5);
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: 28px;
+  font-weight: var(--fontWeightSemibold, 600);
+  letter-spacing: 0;
+  line-height: 36px;
+}
+
+.admin-shell .admin-title {
+  color: var(--colorNeutralForeground1, #f5f5f5);
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: 24px;
+  font-weight: var(--fontWeightSemibold, 600);
+  letter-spacing: 0;
+  line-height: 32px;
+}
+
+.admin-shell .admin-subtitle {
+  color: var(--colorNeutralForeground1, #f5f5f5);
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: 18px;
+  font-weight: var(--fontWeightSemibold, 600);
+  letter-spacing: 0;
+  line-height: 26px;
+}
+
+.admin-shell .admin-group-label {
+  color: var(--colorNeutralForeground3, rgba(255, 255, 255, 0.62));
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fontSizeBase300, 14px);
+  font-weight: var(--fontWeightSemibold, 600);
+  letter-spacing: 0;
+  line-height: var(--lineHeightBase300, 20px);
+}
+
+.admin-shell .admin-muted {
+  color: var(--colorNeutralForeground3, rgba(255, 255, 255, 0.62));
+}
+
+.admin-shell .admin-accent {
+  color: var(--colorBrandForeground1, #479ef5);
+}
+
+.admin-shell .panel {
+  border-color: var(--colorNeutralStroke2, rgba(255, 255, 255, 0.16));
+  background: var(--colorNeutralBackground2, #2b2b2b);
+  border-radius: var(--borderRadiusMedium, 4px);
+}
+
+.admin-shell .field {
+  border-color: var(--colorNeutralStroke1, rgba(255, 255, 255, 0.22));
+  background: var(--colorNeutralBackground1, #1f1f1f);
+  color: var(--colorNeutralForeground1, #f5f5f5);
+  border-radius: var(--borderRadiusMedium, 4px);
+}
+
+.admin-shell .btn {
+  border-color: var(--colorNeutralStroke1, rgba(255, 255, 255, 0.22));
+  border-radius: var(--borderRadiusMedium, 4px);
+  font-family: var(--fontFamilyBase, "Segoe UI", system-ui, sans-serif);
+  font-size: var(--fontSizeBase300, 14px);
+  font-weight: var(--fontWeightSemibold, 600);
+}
+
+.admin-shell .btn-primary {
+  background: var(--colorBrandBackground, #115ea3);
+  border-color: var(--colorBrandBackground, #115ea3);
+  color: var(--colorNeutralForegroundOnBrand, #ffffff);
+}
+
+.admin-shell .btn-secondary {
+  background: var(--colorNeutralBackground3, #303030);
+  color: var(--colorNeutralForeground1, #f5f5f5);
+}
+
+.admin-shell .btn-secondary:not(:disabled):hover {
+  background: var(--colorNeutralBackground3Hover, #3d3d3d);
+}
+
+.admin-shell .admin-back-button {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+}
+
+.admin-shell .admin-game-title-field {
+  height: 52px;
+  min-height: 52px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.admin-shell .admin-header-action {
+  height: 44px;
+  min-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.admin-shell .admin-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
+}
+
+.admin-shell .admin-data-table thead {
+  color: var(--colorNeutralForeground3, rgba(255, 255, 255, 0.62));
+  border-bottom: 1px solid var(--colorNeutralStroke2, rgba(255, 255, 255, 0.16));
+}
+
+.admin-shell .admin-data-table th,
+.admin-shell .admin-data-table td {
+  padding: 16px;
+  vertical-align: middle;
+}
+
+.admin-shell .admin-data-table th {
+  font-size: var(--fontSizeBase300, 14px);
+  font-weight: var(--fontWeightSemibold, 600);
+}
+
+.admin-shell .admin-data-table tbody tr {
+  border-bottom: 1px solid var(--colorNeutralStroke2, rgba(255, 255, 255, 0.16));
+}
+
+.admin-shell .admin-data-table tbody tr:last-child {
+  border-bottom: 0;
+}
