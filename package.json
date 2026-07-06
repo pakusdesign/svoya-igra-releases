@@ -38,7 +38,7 @@
     "appId": "ru.svoyaigra.desktop",
     "productName": "Svoya Igra",
     "executableName": "SvoyaIgra",
-    "asar": false,
+    "asar": true,
     "icon": "build/icon.png",
     "files": [
       "app/**/*",
