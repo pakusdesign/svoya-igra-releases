@@ -65,4 +65,7 @@ jobs:
         run: mkdir -p dist/Mac
 
       - name: Build and publish Mac
-        run: npx electron-builder --mac --x64 --arm64 --publish always
+        run: |
+          ulimit -n 10240 || true
+          ulimit -n
+          npx electron-builder --mac --x64 --arm64 --publish always
