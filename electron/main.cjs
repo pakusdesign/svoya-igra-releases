@@ -26,6 +26,7 @@ const defaultPublishConfig = {
   repo: "svoya-igra-releases",
   releaseType: "release"
 };
+const releasesUrl = `https://github.com/${defaultPublishConfig.owner}/${defaultPublishConfig.repo}/releases/latest`;
 
 app.setAppUserModelId(appId);
 autoUpdater.autoDownload = false;
@@ -351,6 +352,32 @@ function sendUpdateStatus(patch) {
   return updateStatus;
 }
 
+function isMacCodeSignatureUpdateError(error) {
+  if (process.platform !== "darwin") return false;
+  const message = error instanceof Error ? error.message : String(error);
+  return /Code signature at URL|did not pass validation|code signature|подпис/i.test(message);
+}
+
+function updateErrorPatch(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (isMacCodeSignatureUpdateError(error)) {
+    return {
+      status: "error",
+      message:
+        "macOS не смогла установить обновление автоматически из-за подписи текущей версии. Скачайте последнюю DMG-сборку вручную и замените приложение. Игры и игроки сохранятся.",
+      manualUrl: releasesUrl,
+      technicalMessage: message,
+      progress: undefined
+    };
+  }
+
+  return {
+    status: "error",
+    message,
+    progress: undefined
+  };
+}
+
 autoUpdater.on("checking-for-update", () => {
   sendUpdateStatus({ status: "checking", message: "Проверяем обновления..." });
 });
@@ -391,11 +418,7 @@ autoUpdater.on("update-downloaded", (info) => {
 });
 
 autoUpdater.on("error", (error) => {
-  sendUpdateStatus({
-    status: "error",
-    message: error instanceof Error ? error.message : String(error),
-    progress: undefined
-  });
+  sendUpdateStatus(updateErrorPatch(error));
 });
 
 ipcMain.handle("updates:get-status", () => sendUpdateStatus({}));
@@ -410,17 +433,30 @@ ipcMain.handle("updates:check", async () => {
     return sendUpdateStatus({ status: "disabled", message: "Канал обновлений не настроен.", feedUrl });
   }
   autoUpdater.setFeedURL(publishConfig);
-  await autoUpdater.checkForUpdates();
-  return updateStatus;
+  try {
+    await autoUpdater.checkForUpdates();
+    return updateStatus;
+  } catch (error) {
+    return sendUpdateStatus(updateErrorPatch(error));
+  }
 });
 
 ipcMain.handle("updates:download", async () => {
-  await autoUpdater.downloadUpdate();
-  return sendUpdateStatus({ status: "downloading", message: "Скачиваем обновление..." });
+  try {
+    await autoUpdater.downloadUpdate();
+    return sendUpdateStatus({ status: "downloading", message: "Скачиваем обновление..." });
+  } catch (error) {
+    return sendUpdateStatus(updateErrorPatch(error));
+  }
 });
 
 ipcMain.handle("updates:install", () => {
   autoUpdater.quitAndInstall(false, true);
+});
+
+ipcMain.handle("updates:open-release", async () => {
+  await shell.openExternal(releasesUrl);
+  return { ok: true };
 });
 
 async function createNextServer() {

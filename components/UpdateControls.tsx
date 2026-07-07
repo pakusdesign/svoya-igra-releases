@@ -8,6 +8,8 @@ type UpdateStatus = {
   currentVersion?: string;
   updateVersion?: string;
   progress?: number;
+  manualUrl?: string;
+  technicalMessage?: string;
 };
 
 type UpdateApi = {
@@ -15,6 +17,7 @@ type UpdateApi = {
   check: () => Promise<UpdateStatus>;
   download: () => Promise<UpdateStatus>;
   install: () => Promise<void>;
+  openRelease: () => Promise<void>;
   onStatus: (callback: (status: UpdateStatus) => void) => () => void;
 };
 
@@ -44,12 +47,19 @@ export function UpdateControls({ compact = false }: UpdateControlsProps) {
 
   const busy = status?.status === "checking" || status?.status === "downloading";
   const version = status?.currentVersion ? `v${status.currentVersion}` : "";
+  const runAction = (action: () => Promise<UpdateStatus | void>) => {
+    void action().then((nextStatus) => {
+      if (nextStatus) setStatus(nextStatus);
+    });
+  };
   const action =
-    status?.status === "available"
-      ? { label: "Скачать", onClick: () => void api.download(), primary: true }
+    status?.status === "error" && status.manualUrl
+      ? { label: "Открыть релиз", onClick: () => runAction(api.openRelease), primary: true }
+      : status?.status === "available"
+        ? { label: "Скачать", onClick: () => runAction(api.download), primary: true }
       : status?.status === "downloaded"
-        ? { label: "Установить", onClick: () => void api.install(), primary: true }
-        : { label: busy ? "Проверяем..." : "Проверить", onClick: () => void api.check().then(setStatus), primary: false };
+        ? { label: "Установить", onClick: () => runAction(api.install), primary: true }
+        : { label: busy ? "Проверяем..." : "Проверить", onClick: () => runAction(api.check), primary: false };
 
   if (compact) {
     return (

@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld("svoyaIgraUpdates", {
   check: () => ipcRenderer.invoke("updates:check"),
   download: () => ipcRenderer.invoke("updates:download"),
   install: () => ipcRenderer.invoke("updates:install"),
+  openRelease: () => ipcRenderer.invoke("updates:open-release"),
   onStatus: (callback) => {
     const listener = (_event, status) => callback(status);
     ipcRenderer.on("updates:status", listener);
