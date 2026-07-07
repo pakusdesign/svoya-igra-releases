@@ -1,14 +1,14 @@
 "use client";
 
 import { Field } from "@fluentui/react-components";
-import { FileUp, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { detectFileMediaType, detectUrlMediaType, type FileDetails, type MediaType, type SourceType } from "@/lib/media";
 import { savePersistentFile } from "@/lib/persistentFile";
 import type { Question } from "@/lib/types";
 import { AdminSelect } from "./AdminSelect";
+import { MediaFileControl } from "./MediaFileControl";
+import { MediaReplaceConfirmDialog } from "./MediaReplaceConfirmDialog";
 
-type MediaType = "image" | "audio" | "video";
-type SourceType = "url" | "file";
 type MediaField = "imageUrl" | "audioUrl" | "videoUrl" | "answerImageUrl" | "answerAudioUrl" | "answerVideoUrl";
 type VideoTypeField = "videoType" | "answerVideoType";
 
@@ -30,11 +30,6 @@ type MediaUploaderProps = {
   compactFileInput?: boolean;
   autoDetectMediaType?: boolean;
   getPatchForMediaType?: (mediaType: MediaType) => Partial<Question>;
-};
-
-type FileDetails = {
-  name: string;
-  size: number;
 };
 
 type MediaCacheEntry = {
@@ -86,34 +81,12 @@ function getSourceType(value?: string, videoType?: Question["videoType"] | Quest
   return "url";
 }
 
-function formatFileSize(size: number) {
-  if (size < 1024) return `${size} Б`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} КБ`;
-  return `${(size / 1024 / 1024).toFixed(1)} МБ`;
-}
-
 function getInitialCache(question: Question, fields: MediaFields): MediaCache {
   return {
     image: { [getSourceType(question[fields.image])]: question[fields.image] },
     audio: { [getSourceType(question[fields.audio])]: question[fields.audio] },
     video: { [getSourceType(question[fields.video], question[fields.videoType])]: question[fields.video] }
   };
-}
-
-function detectFileMediaType(file: File): MediaType | undefined {
-  if (file.type.startsWith("image/")) return "image";
-  if (file.type.startsWith("audio/")) return "audio";
-  if (file.type.startsWith("video/")) return "video";
-  return undefined;
-}
-
-function detectUrlMediaType(url: string): MediaType | undefined {
-  const normalized = url.split("?")[0].toLowerCase();
-  if (/youtube\.com|youtu\.be|vimeo\.com/.test(url)) return "video";
-  if (/\.(png|jpe?g|gif|webp|avif|svg)$/.test(normalized)) return "image";
-  if (/\.(mp3|wav|ogg|m4a|aac|flac)$/.test(normalized)) return "audio";
-  if (/\.(mp4|webm|mov|m4v|ogv)$/.test(normalized)) return "video";
-  return undefined;
 }
 
 export function MediaUploader({
@@ -134,7 +107,6 @@ export function MediaUploader({
   const activeOption = useMemo(() => mediaOptions.find((option) => option.type === mediaType) ?? mediaOptions[0], [mediaType, mediaOptions]);
   const value = question[activeOption.field];
   const [sourceType, setSourceType] = useState<SourceType>(() => getSourceType(value, question[fields.videoType]));
-  const [isDragging, setIsDragging] = useState(false);
   const [fileDetails, setFileDetails] = useState<FileDetails | null>(null);
   const [mediaCache, setMediaCache] = useState<MediaCache>(() => getInitialCache(question, fields));
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -165,10 +137,6 @@ export function MediaUploader({
       [fields.video]: nextType === "video" ? question[fields.video] : undefined,
       [fields.videoType]: nextType === "video" ? question[fields.videoType] : undefined
     };
-  }
-
-  function setMediaValue(nextValue?: string, nextSourceType = sourceType) {
-    setMediaValueForType(mediaType, nextValue, nextSourceType);
   }
 
   function setMediaValueForType(nextMediaType: MediaType, nextValue?: string, nextSourceType = sourceType, nextFileDetails = fileDetails) {
@@ -296,100 +264,12 @@ export function MediaUploader({
     });
   }
 
-  function renderPreview() {
-    if (!value) return null;
-    if (mediaType === "image") {
-      return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={value} alt="" className="max-h-56 w-full rounded-lg object-contain" />
-      );
-    }
-    if (mediaType === "audio") {
-      return <audio className="w-full" src={value} controls />;
-    }
-    return <video className="max-h-64 w-full rounded-lg" src={value} controls />;
-  }
-
   const acceptLabel = autoDetectMediaType ? "image/*, audio/*, video/*" : activeOption.accept;
-
-  function renderFileControl() {
-    return (
-      <div
-        className={`rounded-lg border border-dashed p-4 transition ${
-          isDragging ? "border-[var(--colorBrandStroke1)] bg-[var(--colorBrandBackground2)]" : "border-[var(--colorNeutralStroke2)] bg-[var(--colorNeutralBackground2)]"
-        }`}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragOver={(event) => event.preventDefault()}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={(event) => {
-          event.preventDefault();
-          setIsDragging(false);
-          useFile(event.dataTransfer.files?.[0]);
-        }}
-      >
-        {value ? (
-          <div className="space-y-4">
-            {renderPreview()}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[var(--colorNeutralBackground3)] p-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <FileUp className="shrink-0 text-[var(--colorBrandForeground1)]" size={22} />
-                <div className="min-w-0">
-                  <div className="truncate font-bold">{fileDetails?.name ?? "Выбранный файл"}</div>
-                  <div className="admin-muted text-sm">{fileDetails ? formatFileSize(fileDetails.size) : acceptLabel}</div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button className="btn btn-secondary" type="button" onClick={() => fileInputRef.current?.click()}>
-                  Изменить файл
-                </button>
-                <button className="btn btn-secondary" type="button" onClick={clearMedia}>
-                  Удалить
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <button
-            className={`flex w-full flex-col items-center justify-center gap-3 text-center ${compactFileInput ? "min-h-16" : "min-h-32"}`}
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload size={24} />
-            <span className="font-semibold">Перетащите файл сюда или выберите на диске</span>
-            <span className="admin-muted text-sm">{acceptLabel}</span>
-          </button>
-        )}
-        <input
-          ref={fileInputRef}
-          className="hidden"
-          type="file"
-          accept={autoDetectMediaType ? "image/*,audio/*,video/*" : activeOption.accept}
-          onChange={(event) => useFile(event.target.files?.[0])}
-        />
-      </div>
-    );
-  }
+  const accept = autoDetectMediaType ? "image/*,audio/*,video/*" : activeOption.accept;
 
   return (
     <div className="space-y-3">
-      {pendingFile ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4">
-          <div className="panel w-full max-w-md p-5 shadow-2xl">
-            <p className="mb-5 text-lg font-bold">Вы действительно хотите изменить ранее загруженный файл на новый</p>
-            <div className="flex flex-wrap justify-end gap-2">
-              <button className="btn btn-secondary" type="button" onClick={confirmPendingFile}>
-                Загрузить новый файл
-              </button>
-              <button className="btn btn-primary" type="button" onClick={cancelPendingFile}>
-                Отмена
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {pendingFile ? <MediaReplaceConfirmDialog onConfirm={confirmPendingFile} onCancel={cancelPendingFile} /> : null}
 
       <div className={`grid items-start gap-3 ${showMediaTypePicker && !autoDetectMediaType ? "lg:grid-cols-[220px_160px_1fr]" : "lg:grid-cols-[160px_1fr]"}`}>
         {showMediaTypePicker && !autoDetectMediaType ? (
@@ -425,7 +305,17 @@ export function MediaUploader({
               </button>
             </div>
           ) : (
-            renderFileControl()
+            <MediaFileControl
+              fileInputRef={fileInputRef}
+              value={value}
+              mediaType={mediaType}
+              fileDetails={fileDetails}
+              accept={accept}
+              acceptLabel={acceptLabel}
+              compact={compactFileInput}
+              onUseFile={useFile}
+              onClear={clearMedia}
+            />
           )}
         </div>
       </div>

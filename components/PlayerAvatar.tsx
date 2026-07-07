@@ -1,10 +1,11 @@
 type PlayerAvatarProps = {
   name: string;
   avatarUrl?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
 };
 
 const sizes = {
+  xs: "h-8 w-8 text-xs",
   sm: "h-9 w-9 text-sm",
   md: "h-12 w-12 text-lg",
   lg: "h-16 w-16 text-2xl"

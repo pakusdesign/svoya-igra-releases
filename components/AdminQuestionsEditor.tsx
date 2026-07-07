@@ -2,6 +2,16 @@
 
 import { Button, Field, Input, Radio, RadioGroup } from "@fluentui/react-components";
 import { ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
+import {
+  answerMediaType,
+  answerMode,
+  answerModeOptions,
+  answerIncludesText,
+  answerTypeFromMode,
+  answerTypePatch,
+  getAnswerType,
+  type AnswerMediaType
+} from "@/lib/answerTypes";
 import { DEFAULT_PRICES, id } from "@/lib/game";
 import type { Question, Theme } from "@/lib/types";
 import { AdminSelect } from "./AdminSelect";
@@ -14,50 +24,10 @@ type Props = {
   onChange: (theme: Theme) => void;
 };
 
-type AnswerType = NonNullable<Question["answerType"]>;
-type AnswerMode = "text" | "media" | "mixed";
-type AnswerMediaType = "image" | "audio" | "video";
 type QuestionDropTarget = {
   questionId: string;
   position: "before" | "after";
 };
-
-const answerModeOptions: Array<{ value: AnswerMode; label: string }> = [
-  { value: "text", label: "Только текст" },
-  { value: "media", label: "Только медиа" },
-  { value: "mixed", label: "Текст + медиа" }
-];
-
-function answerMediaType(answerType: AnswerType): "image" | "audio" | "video" | undefined {
-  if (answerType === "image" || answerType === "text-image") return "image";
-  if (answerType === "audio" || answerType === "text-audio") return "audio";
-  if (answerType === "video" || answerType === "text-video") return "video";
-  return undefined;
-}
-
-function answerMode(answerType: AnswerType): AnswerMode {
-  if (answerType === "text") return "text";
-  if (answerType === "text-image" || answerType === "text-audio" || answerType === "text-video") return "mixed";
-  return "media";
-}
-
-function answerTypeFromMode(mode: AnswerMode, mediaType: AnswerMediaType): AnswerType {
-  if (mode === "text") return "text";
-  if (mode === "media") return mediaType;
-  if (mediaType === "image") return "text-image";
-  return mediaType === "video" ? "text-video" : "text-audio";
-}
-
-function answerTypePatch(question: Question, answerType: AnswerType): Partial<Question> {
-  return {
-    answerType,
-    answerText: answerType === "text" || answerType === "text-image" || answerType === "text-audio" || answerType === "text-video" ? question.answerText : "",
-    answerImageUrl: answerType === "image" || answerType === "text-image" ? question.answerImageUrl : undefined,
-    answerAudioUrl: answerType === "audio" || answerType === "text-audio" ? question.answerAudioUrl : undefined,
-    answerVideoUrl: answerType === "video" || answerType === "text-video" ? question.answerVideoUrl : undefined,
-    answerVideoType: answerType === "video" || answerType === "text-video" ? question.answerVideoType : undefined
-  };
-}
 
 function priceForIndex(index: number) {
   return DEFAULT_PRICES[index] ?? (index + 1) * 100;
@@ -255,15 +225,15 @@ export function AdminQuestionsEditor({ theme, onChange }: Props) {
                             <AdminSelect
                               ariaLabel="Тип правильного ответа"
                               options={answerModeOptions}
-                              value={answerMode(question.answerType ?? "text")}
+                              value={answerMode(getAnswerType(question))}
                               onChange={(nextMode) => {
-                                const currentMediaType = answerMediaType(question.answerType ?? "text") ?? "image";
+                                const currentMediaType = answerMediaType(getAnswerType(question)) ?? "image";
                                 updateQuestion(question.id, answerTypePatch(question, answerTypeFromMode(nextMode, currentMediaType)));
                               }}
                             />
                           </Field>
                         </div>
-                        {question.answerType === undefined || question.answerType === "text" || question.answerType === "text-image" || question.answerType === "text-audio" || question.answerType === "text-video" ? (
+                        {answerIncludesText(getAnswerType(question)) ? (
                           <Field label="Текст правильного ответа">
                             <Input
                               value={question.answerText}
@@ -271,7 +241,7 @@ export function AdminQuestionsEditor({ theme, onChange }: Props) {
                             />
                           </Field>
                         ) : null}
-                        {answerMediaType(question.answerType ?? "text") ? (
+                        {answerMediaType(getAnswerType(question)) ? (
                           <MediaUploader
                             question={question}
                             onChange={(patch) => updateQuestion(question.id, patch)}
@@ -280,7 +250,7 @@ export function AdminQuestionsEditor({ theme, onChange }: Props) {
                             showMediaTypePicker={false}
                             compactFileInput
                             autoDetectMediaType
-                            getPatchForMediaType={(mediaType) => ({ answerType: answerTypeFromMode(answerMode(question.answerType ?? "text"), mediaType as AnswerMediaType) })}
+                            getPatchForMediaType={(mediaType) => ({ answerType: answerTypeFromMode(answerMode(getAnswerType(question)), mediaType as AnswerMediaType) })}
                           />
                         ) : null}
                       </div>

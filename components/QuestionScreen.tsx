@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { answerIncludesText, answerMediaType, getAnswerType } from "@/lib/answerTypes";
 import { activeRound, findQuestion, isRoundComplete } from "@/lib/game";
 import type { GameState } from "@/lib/types";
 import { HostPanel } from "./HostPanel";
@@ -39,13 +40,15 @@ export function QuestionScreen({ state, setState, questionId }: Props) {
   }
 
   const { theme, question } = found;
-  const answerText =
-    question.answerText ||
-    (question.answerOptions ?? [])
-      .filter((option) => option.isCorrect)
-      .map((option) => option.text)
-      .join(", ");
-  const answerType = question.answerType ?? "text";
+  const answerType = getAnswerType(question);
+  const answerMedia = answerMediaType(answerType);
+  const answerText = answerIncludesText(answerType)
+    ? question.answerText ||
+      (question.answerOptions ?? [])
+        .filter((option) => option.isCorrect)
+        .map((option) => option.text)
+        .join(", ")
+    : "";
   const answerVideoUrl = embedUrl(question.answerVideoUrl);
   const hasQuestionMedia = Boolean(question.imageUrl || question.audioUrl || question.videoUrl);
 
@@ -80,14 +83,14 @@ export function QuestionScreen({ state, setState, questionId }: Props) {
       <div className={`flex flex-col rounded-lg border-2 border-prize bg-board/95 p-6 shadow-2xl ${isOverlay ? "h-full min-h-0 overflow-hidden" : "bg-prize/15"}`}>
         <div className="mb-2 shrink-0 text-sm font-bold uppercase tracking-widest text-prize">Правильный ответ</div>
         {answerText ? <div className="shrink-0 text-4xl font-black">{answerText}</div> : null}
-        {(answerType === "image" || answerType === "text-image") && question.answerImageUrl ? (
+        {answerMedia === "image" && question.answerImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={question.answerImageUrl} alt="" className={`mt-4 min-h-0 w-full rounded-lg object-contain ${isOverlay ? "flex-1" : "max-h-[42vh]"}`} />
         ) : null}
-        {(answerType === "audio" || answerType === "text-audio") && question.answerAudioUrl ? (
+        {answerMedia === "audio" && question.answerAudioUrl ? (
           <audio className="mt-4 w-full shrink-0" src={question.answerAudioUrl} controls />
         ) : null}
-        {(answerType === "video" || answerType === "text-video") && question.answerVideoUrl ? (
+        {answerMedia === "video" && question.answerVideoUrl ? (
           answerVideoUrl?.includes("youtube.com/embed/") ? (
             <iframe
               className={`mt-4 min-h-0 w-full rounded-lg ${isOverlay ? "flex-1" : "aspect-video"}`}
@@ -105,8 +108,8 @@ export function QuestionScreen({ state, setState, questionId }: Props) {
   }
 
   return (
-    <main className="h-screen overflow-hidden bg-board p-8 text-ink">
-      <div className="flex h-[calc(100vh-4rem)] min-h-0 gap-6">
+    <main className="h-screen overflow-hidden bg-board py-8 pl-8 pr-4 text-ink">
+      <div className="flex h-[calc(100vh-4rem)] min-h-0 gap-4">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6">
           <div className="flex items-start justify-between gap-4">
             <header className="flex items-start gap-5">
@@ -118,18 +121,6 @@ export function QuestionScreen({ state, setState, questionId }: Props) {
                 <h3 className="text-4xl font-black text-prize">{question.price}</h3>
               </div>
             </header>
-            {!hostOpen ? (
-              <HostPanel
-                open={hostOpen}
-                setOpen={setHostOpen}
-                answerVisible={answerVisible}
-                setAnswerVisible={setAnswerVisible}
-                question={question}
-                state={state}
-                setState={setState}
-                onNext={returnToBoard}
-              />
-            ) : null}
           </div>
           {question.text ? <h1 className="shrink-0 text-6xl font-black leading-tight">{question.text}</h1> : null}
           {hasQuestionMedia ? (
@@ -171,20 +162,18 @@ export function QuestionScreen({ state, setState, questionId }: Props) {
           ) : null}
           {answerVisible && !hasQuestionMedia ? renderAnswerBlock() : null}
         </div>
-        {hostOpen ? (
-          <HostPanel
-            open={hostOpen}
-            setOpen={setHostOpen}
-            answerVisible={answerVisible}
-            setAnswerVisible={setAnswerVisible}
-            question={question}
-            state={state}
-            setState={setState}
-            onNext={returnToBoard}
-          />
-        ) : null}
+        <HostPanel
+          open={hostOpen}
+          setOpen={setHostOpen}
+          answerVisible={answerVisible}
+          setAnswerVisible={setAnswerVisible}
+          question={question}
+          state={state}
+          setState={setState}
+          onNext={returnToBoard}
+        />
       </div>
-      <TimerLoader />
+      <TimerLoader rightOffset={hostOpen ? 272 : 24} />
     </main>
   );
 }

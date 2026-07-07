@@ -24,7 +24,11 @@ declare global {
   }
 }
 
-export function UpdateControls() {
+type UpdateControlsProps = {
+  compact?: boolean;
+};
+
+export function UpdateControls({ compact = false }: UpdateControlsProps) {
   const [api, setApi] = useState<UpdateApi | null>(null);
   const [status, setStatus] = useState<UpdateStatus | null>(null);
 
@@ -39,6 +43,24 @@ export function UpdateControls() {
   if (!api) return null;
 
   const busy = status?.status === "checking" || status?.status === "downloading";
+  const version = status?.currentVersion ? `v${status.currentVersion}` : "";
+  const action =
+    status?.status === "available"
+      ? { label: "Скачать", onClick: () => void api.download(), primary: true }
+      : status?.status === "downloaded"
+        ? { label: "Установить", onClick: () => void api.install(), primary: true }
+        : { label: busy ? "Проверяем..." : "Проверить", onClick: () => void api.check().then(setStatus), primary: false };
+
+  if (compact) {
+    return (
+      <div className="panel flex min-h-11 items-center gap-3 px-3 py-2 text-sm text-white/75">
+        <span className="whitespace-nowrap font-semibold text-white">{version || "Версия"}</span>
+        <button className={`btn ${action.primary ? "btn-primary" : "btn-secondary"} h-8 min-h-8 px-3 text-sm`} type="button" onClick={action.onClick} disabled={busy}>
+          {action.label}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="panel space-y-2 p-3 text-sm text-white/75">
@@ -47,19 +69,9 @@ export function UpdateControls() {
           <div className="font-bold text-white">Обновления</div>
           {status?.currentVersion ? <div>Текущая версия: {status.currentVersion}</div> : null}
         </div>
-        {status?.status === "available" ? (
-          <button className="btn btn-primary" type="button" onClick={() => void api.download()} disabled={busy}>
-            Скачать
-          </button>
-        ) : status?.status === "downloaded" ? (
-          <button className="btn btn-primary" type="button" onClick={() => void api.install()}>
-            Установить
-          </button>
-        ) : (
-          <button className="btn btn-secondary" type="button" onClick={() => void api.check().then(setStatus)} disabled={busy}>
-            Проверить
-          </button>
-        )}
+        <button className={`btn ${action.primary ? "btn-primary" : "btn-secondary"}`} type="button" onClick={action.onClick} disabled={busy}>
+          {action.label}
+        </button>
       </div>
       {status?.message ? <div>{status.message}</div> : null}
       {typeof status?.progress === "number" ? (

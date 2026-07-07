@@ -70,8 +70,13 @@ textarea {
 }
 
 .btn-secondary {
-  background: var(--colorNeutralBackground1, rgba(255, 255, 255, 0.08));
+  background: #051a45;
+  border-color: rgba(255, 255, 255, 0.22);
   color: var(--colorNeutralForeground1, #f5f7fb);
+}
+
+.btn-secondary:not(:disabled):hover {
+  background: #08235d;
 }
 
 .field {

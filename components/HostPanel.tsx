@@ -22,36 +22,40 @@ export function HostPanel({ open, setOpen, answerVisible, setAnswerVisible, ques
 
   if (!open) {
     return (
-      <button className="btn btn-secondary" type="button" onClick={() => setOpen(true)}>
-        <PanelRightOpen size={20} /> Панель ведущего
-      </button>
+      <aside className="h-[calc(100vh-4rem)] w-[76px] shrink-0 p-4">
+        <button className="btn btn-secondary h-11 w-11 p-0" type="button" aria-label="Показать панель ведущего" onClick={() => setOpen(true)}>
+          <PanelRightOpen size={20} />
+        </button>
+      </aside>
     );
   }
 
   return (
     <>
-      <aside className="h-[calc(100vh-4rem)] w-full max-w-[460px] shrink-0 overflow-y-auto rounded-lg bg-white/[0.045] p-5 shadow-xl">
-        <div className="mb-5 flex justify-end gap-2">
-          <button className="btn btn-secondary px-3" type="button" aria-label="Результаты" onClick={() => setResultsOpen(true)}>
-            <Trophy size={20} />
-          </button>
-          <button className="btn btn-secondary px-3" type="button" aria-label="Скрыть панель" onClick={() => setOpen(false)}>
-            <X size={20} />
-          </button>
+      <aside className="flex h-[calc(100vh-4rem)] w-[240px] shrink-0 flex-col overflow-hidden rounded-lg bg-white/[0.045] p-3 shadow-xl">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h3 className="min-w-0 text-sm font-bold text-white/65">Начисление очков</h3>
+          <div className="flex shrink-0 gap-2">
+            <button className="btn btn-secondary h-10 w-10 p-0" type="button" aria-label="Результаты" onClick={() => setResultsOpen(true)}>
+              <Trophy size={20} />
+            </button>
+            <button className="btn btn-secondary h-10 w-10 p-0" type="button" aria-label="Скрыть панель ведущего" onClick={() => setOpen(false)}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
-        <h3 className="mb-3 text-lg font-bold text-white/65">Начисление очков</h3>
         <ScoreControls state={state} setState={setState} questionId={question.id} price={question.price} />
-        <div className="mt-5 grid gap-2">
+        <div className="mt-2 grid shrink-0 gap-2">
           {!answerVisible ? (
-            <button className="btn btn-primary w-full" type="button" onClick={() => setAnswerVisible(true)}>
+            <button className="btn btn-primary h-10 min-h-10 w-full text-sm" type="button" onClick={() => setAnswerVisible(true)}>
               <Eye size={18} /> Показать ответ
             </button>
           ) : (
             <>
-              <button className="btn btn-primary w-full" type="button" onClick={onNext}>
+              <button className="btn btn-primary h-10 min-h-10 w-full text-sm" type="button" onClick={onNext}>
                 Далее
               </button>
-              <button className="btn btn-secondary w-full" type="button" onClick={() => setAnswerVisible(false)}>
+              <button className="btn btn-secondary h-10 min-h-10 w-full text-sm" type="button" onClick={() => setAnswerVisible(false)}>
                 <EyeOff size={18} /> Скрыть ответ
               </button>
             </>

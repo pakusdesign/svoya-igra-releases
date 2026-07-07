@@ -36,20 +36,20 @@ export function ScoreControls({ state, setState, questionId, price }: Props) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="grid shrink-0 gap-1.5">
       {state.players.map((player) => (
-        <div className="grid gap-3 rounded-lg bg-white/[0.035] p-3" key={player.id}>
-          <div className="flex items-center gap-3">
-            <PlayerAvatar name={player.name} avatarUrl={player.avatarUrl} size="sm" />
-            <div>
-              <div className="font-bold text-white/80">{player.name}</div>
-              <div className="text-sm text-white/45">Текущий счёт: {player.score}</div>
+        <div className="grid gap-1.5 rounded-lg bg-white/[0.035] p-2" key={player.id}>
+          <div className="flex items-center gap-2">
+            <PlayerAvatar name={player.name} avatarUrl={player.avatarUrl} size="xs" />
+            <div className="min-w-0 leading-tight">
+              <div className="truncate text-sm font-bold text-white/85">{player.name}</div>
+              <div className="truncate text-xs text-white/45">Счёт: {player.score}</div>
             </div>
           </div>
-          <div className="flex flex-wrap items-center">
-            <div className="flex gap-2">
+          <div className="grid grid-cols-[1fr_1fr_32px] items-center gap-1.5">
+            <div className="contents">
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary h-8 min-h-8 min-w-0 px-1 text-sm leading-none"
                 disabled={state.scoreEvents.some((event) => event.playerId === player.id && event.questionId === questionId)}
                 type="button"
                 onClick={() => applyScore(player.id, price)}
@@ -57,7 +57,7 @@ export function ScoreControls({ state, setState, questionId, price }: Props) {
                 +{price}
               </button>
               <button
-                className="btn btn-secondary"
+                className="btn btn-secondary h-8 min-h-8 min-w-0 px-1 text-sm leading-none"
                 disabled={state.scoreEvents.some((event) => event.playerId === player.id && event.questionId === questionId)}
                 type="button"
                 onClick={() => applyScore(player.id, -price)}
@@ -65,8 +65,8 @@ export function ScoreControls({ state, setState, questionId, price }: Props) {
                 -{price}
               </button>
             </div>
-            <button className="btn btn-secondary ml-10 px-3" type="button" aria-label="Отменить" onClick={() => undo(player.id)}>
-              <Undo2 size={18} />
+            <button className="btn btn-secondary h-8 min-h-8 w-8 p-0" type="button" aria-label="Отменить" onClick={() => undo(player.id)}>
+              <Undo2 className="h-4 w-4 shrink-0" strokeWidth={2.5} />
             </button>
           </div>
         </div>

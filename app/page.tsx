@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { UpdateControls } from "@/components/UpdateControls";
 import { resetGameForStart, validateGameReady } from "@/lib/game";
 import { useGameState } from "@/lib/useGameState";
+import { Settings } from "lucide-react";
 
 export default function HomePage() {
   const { state, setState } = useGameState();
@@ -12,6 +12,14 @@ export default function HomePage() {
 
   return (
     <main className="relative flex min-h-screen flex-col justify-end bg-board p-8">
+      <Link
+        className="btn btn-secondary absolute right-6 top-6 z-20 h-12 w-12 p-0"
+        href="/admin"
+        aria-label="Открыть админку"
+        title="Админка"
+      >
+        <Settings size={24} aria-hidden="true" />
+      </Link>
       <div className="pointer-events-none absolute inset-0 grid place-items-center px-8 pb-28">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -45,10 +53,6 @@ export default function HomePage() {
         >
           Начать игру
         </Link>
-        <Link className="btn btn-secondary w-full py-4 text-xl" href="/admin">
-          Админка
-        </Link>
-        <UpdateControls />
       </div>
     </main>
   );

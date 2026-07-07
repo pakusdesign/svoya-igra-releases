@@ -1,3 +1,4 @@
+import { answerValidationIssue } from "./answerTypes";
 import type { GameRound, GameState, Question, SavedPlayer, ScoreEvent, Theme } from "./types";
 
 export const DEFAULT_PRICES = [100, 200, 300, 400, 500];
@@ -100,33 +101,8 @@ export function validateGameIssues(state: GameState): string[] {
             issues.push(`${questionPath}: отметьте правильный вариант ответа.`);
           }
         } else {
-          const answerType = question.answerType ?? "text";
-          const hasAnswerText = Boolean(question.answerText.trim());
-          const hasAnswerImage = Boolean(question.answerImageUrl);
-          const hasAnswerAudio = Boolean(question.answerAudioUrl);
-          const hasAnswerVideo = Boolean(question.answerVideoUrl);
-
-          if (answerType === "text" && !hasAnswerText) {
-            issues.push(`${questionPath}: заполните текст правильного ответа.`);
-          }
-          if (answerType === "image" && !hasAnswerImage) {
-            issues.push(`${questionPath}: добавьте изображение правильного ответа.`);
-          }
-          if (answerType === "audio" && !hasAnswerAudio) {
-            issues.push(`${questionPath}: добавьте аудио правильного ответа.`);
-          }
-          if (answerType === "video" && !hasAnswerVideo) {
-            issues.push(`${questionPath}: добавьте видео правильного ответа.`);
-          }
-          if (answerType === "text-image" && (!hasAnswerText || !hasAnswerImage)) {
-            issues.push(`${questionPath}: заполните текст и добавьте изображение правильного ответа.`);
-          }
-          if (answerType === "text-audio" && (!hasAnswerText || !hasAnswerAudio)) {
-            issues.push(`${questionPath}: заполните текст и добавьте аудио правильного ответа.`);
-          }
-          if (answerType === "text-video" && (!hasAnswerText || !hasAnswerVideo)) {
-            issues.push(`${questionPath}: заполните текст и добавьте видео правильного ответа.`);
-          }
+          const answerIssue = answerValidationIssue(question, questionPath);
+          if (answerIssue) issues.push(answerIssue);
         }
       }
     }

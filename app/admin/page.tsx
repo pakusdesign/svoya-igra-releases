@@ -16,6 +16,7 @@ import { createDemoState, createInitialState, id, resetGameForStart, validateGam
 import { exportGameFile, importGameFile, isGameState, revealGameFile } from "@/lib/gameFiles";
 import { useGamesLibrary } from "@/lib/useGamesLibrary";
 import { AdminPlayersForm } from "@/components/AdminPlayersForm";
+import { UpdateControls } from "@/components/UpdateControls";
 import type { GameState, SavedPlayer } from "@/lib/types";
 import { ArrowLeft, Download, FolderOpen, MoreVertical, Pencil, Play, Plus, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
@@ -211,7 +212,7 @@ export default function AdminPage() {
   return (
     <main className="admin-shell p-4 md:p-6">
       <div className="mx-auto max-w-7xl space-y-8">
-        <header className="flex flex-wrap items-center justify-between gap-3">
+        <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-1 items-center gap-6">
             <button className="btn btn-secondary admin-back-button" type="button" aria-label="Назад на главный экран" onClick={() => router.push("/")}>
               <ArrowLeft size={24} />
@@ -220,6 +221,9 @@ export default function AdminPage() {
               <div className="admin-context-title">Админка</div>
               <p className="admin-muted">Игры и игроки хранятся отдельно.</p>
             </div>
+          </div>
+          <div className="ml-auto">
+            <UpdateControls compact />
           </div>
         </header>
         {message ? (
