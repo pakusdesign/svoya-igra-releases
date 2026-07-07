@@ -5,6 +5,7 @@ const fs = require("node:fs/promises");
 const http = require("node:http");
 const next = require("next");
 const path = require("node:path");
+const { execFileSync, spawnSync } = require("node:child_process");
 const { autoUpdater } = require("electron-updater");
 
 let server;
@@ -27,6 +28,7 @@ const defaultPublishConfig = {
   releaseType: "release"
 };
 const releasesUrl = `https://github.com/${defaultPublishConfig.owner}/${defaultPublishConfig.repo}/releases/latest`;
+let macManualUpdateOnly;
 
 app.setAppUserModelId(appId);
 autoUpdater.autoDownload = false;
@@ -378,6 +380,38 @@ function updateErrorPatch(error) {
   };
 }
 
+function getMacAppBundlePath() {
+  const marker = `${path.sep}Contents${path.sep}MacOS${path.sep}`;
+  const markerIndex = process.execPath.indexOf(marker);
+  return markerIndex === -1 ? process.execPath : process.execPath.slice(0, markerIndex);
+}
+
+function isMacManualUpdateOnly() {
+  if (process.platform !== "darwin" || isDev) return false;
+  if (typeof macManualUpdateOnly === "boolean") return macManualUpdateOnly;
+
+  try {
+    execFileSync("codesign", ["--verify", "--deep", "--strict", getMacAppBundlePath()], { stdio: "ignore" });
+    const signature = spawnSync("codesign", ["-dv", "--verbose=4", getMacAppBundlePath()], { encoding: "utf8" });
+    const details = `${signature.stdout || ""}\n${signature.stderr || ""}`;
+    macManualUpdateOnly = signature.status !== 0 || /Signature=adhoc|TeamIdentifier=not set/i.test(details);
+  } catch {
+    macManualUpdateOnly = true;
+  }
+
+  return macManualUpdateOnly;
+}
+
+function manualMacUpdatePatch() {
+  return {
+    status: "manual",
+    message:
+      "Эта macOS-сборка установлена без Developer ID подписи, поэтому macOS не разрешит автоматическую установку обновления. Откройте релиз, скачайте последнюю DMG-сборку и замените приложение вручную. Игры и игроки сохранятся.",
+    manualUrl: releasesUrl,
+    progress: undefined
+  };
+}
+
 autoUpdater.on("checking-for-update", () => {
   sendUpdateStatus({ status: "checking", message: "Проверяем обновления..." });
 });
@@ -421,7 +455,10 @@ autoUpdater.on("error", (error) => {
   sendUpdateStatus(updateErrorPatch(error));
 });
 
-ipcMain.handle("updates:get-status", () => sendUpdateStatus({}));
+ipcMain.handle("updates:get-status", () => {
+  if (isMacManualUpdateOnly()) return sendUpdateStatus(manualMacUpdatePatch());
+  return sendUpdateStatus({});
+});
 
 ipcMain.handle("updates:check", async () => {
   const publishConfig = getUpdatePublishConfig();
@@ -431,6 +468,9 @@ ipcMain.handle("updates:check", async () => {
   }
   if (!isUpdateFeedConfigured(publishConfig)) {
     return sendUpdateStatus({ status: "disabled", message: "Канал обновлений не настроен.", feedUrl });
+  }
+  if (isMacManualUpdateOnly()) {
+    return sendUpdateStatus(manualMacUpdatePatch());
   }
   autoUpdater.setFeedURL(publishConfig);
   try {
@@ -442,6 +482,9 @@ ipcMain.handle("updates:check", async () => {
 });
 
 ipcMain.handle("updates:download", async () => {
+  if (isMacManualUpdateOnly()) {
+    return sendUpdateStatus(manualMacUpdatePatch());
+  }
   try {
     await autoUpdater.downloadUpdate();
     return sendUpdateStatus({ status: "downloading", message: "Скачиваем обновление..." });

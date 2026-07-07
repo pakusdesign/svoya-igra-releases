@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 type UpdateStatus = {
-  status: "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error" | "disabled";
+  status: "idle" | "checking" | "available" | "not-available" | "downloading" | "downloaded" | "error" | "disabled" | "manual";
   message: string;
   currentVersion?: string;
   updateVersion?: string;
@@ -53,7 +53,7 @@ export function UpdateControls({ compact = false }: UpdateControlsProps) {
     });
   };
   const action =
-    status?.status === "error" && status.manualUrl
+    (status?.status === "error" || status?.status === "manual") && status.manualUrl
       ? { label: "Открыть релиз", onClick: () => runAction(api.openRelease), primary: true }
       : status?.status === "available"
         ? { label: "Скачать", onClick: () => runAction(api.download), primary: true }
